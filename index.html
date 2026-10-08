@@ -1,0 +1,557 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Aviator Learning Simulator</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#080b12;
+    color:#fff;
+}
+.header{
+    background:#111722;
+    padding:15px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid #252d3a;
+}
+.logo{
+    font-size:23px;
+    font-weight:bold;
+    color:#ff3b30;
+}
+.demo{
+    background:#3a2810;
+    color:#ffc857;
+    padding:7px 12px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+}
+.container{
+    max-width:1100px;
+    margin:auto;
+    padding:20px;
+}
+.balance{
+    background:#111722;
+    border:1px solid #252d3a;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:18px;
+}
+.balance small{color:#8e99aa}
+.balance h2{
+    margin:7px 0 0;
+    color:#37e27d;
+}
+.game{
+    background:#0d1119;
+    border:1px solid #252d3a;
+    border-radius:16px;
+    overflow:hidden;
+}
+.screen{
+    height:390px;
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:
+      radial-gradient(circle at 50% 65%,#242033 0,#11131e 38%,#090c13 72%);
+}
+.multiplier{
+    font-size:65px;
+    font-weight:bold;
+    color:#fff;
+    text-shadow:0 0 25px #ff3b30;
+}
+.multiplier.running{
+    color:#ff4d4d;
+}
+.status{
+    position:absolute;
+    top:18px;
+    left:18px;
+    color:#aeb8c8;
+    font-size:13px;
+}
+.plane{
+    position:absolute;
+    font-size:55px;
+    display:none;
+    filter:drop-shadow(0 0 15px #ff3b30);
+}
+.controls{
+    padding:18px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+.panel{
+    background:#111722;
+    padding:18px;
+    border-radius:12px;
+    border:1px solid #252d3a;
+}
+label{
+    display:block;
+    color:#9da8b8;
+    font-size:13px;
+    margin-bottom:7px;
+}
+input,select{
+    width:100%;
+    padding:12px;
+    border-radius:9px;
+    border:1px solid #313b4b;
+    background:#080b12;
+    color:#fff;
+    outline:none;
+}
+button{
+    border:0;
+    border-radius:9px;
+    padding:12px;
+    font-weight:bold;
+    cursor:pointer;
+}
+.bet{
+    width:100%;
+    background:#ff3b30;
+    color:#fff;
+    margin-top:12px;
+}
+.cash{
+    width:100%;
+    background:#24c96b;
+    color:#07120b;
+    margin-top:12px;
+}
+.reset{
+    background:#303949;
+    color:#fff;
+    width:100%;
+    margin-top:10px;
+}
+.controller{
+    margin-top:18px;
+    background:#19120d;
+    border:1px solid #6c4825;
+    padding:18px;
+    border-radius:12px;
+}
+.controller h3{
+    color:#ffc857;
+    margin-top:0;
+}
+.controller button{
+    background:#ffc857;
+    color:#16100a;
+    margin-top:10px;
+    width:100%;
+}
+.history{
+    margin-top:18px;
+    background:#111722;
+    border:1px solid #252d3a;
+    border-radius:14px;
+    padding:18px;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th,td{
+    padding:11px 8px;
+    border-bottom:1px solid #252d3a;
+    text-align:left;
+    font-size:13px;
+}
+th{color:#8994a6}
+.win{color:#36df7b}
+.loss{color:#ff6262}
+.note{
+    color:#7e899b;
+    font-size:12px;
+    line-height:1.6;
+    margin-top:15px;
+}
+@media(max-width:700px){
+    .controls{grid-template-columns:1fr}
+    .screen{height:320px}
+    .multiplier{font-size:48px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <div class="logo">✈ AVIATOR LAB</div>
+    <div class="demo">LEARNING SIMULATION</div>
+</div>
+
+<div class="container">
+
+    <div class="balance">
+        <small>Virtual Balance</small>
+        <h2 id="balance">₹10,000.00</h2>
+    </div>
+
+    <div class="game">
+
+        <div class="screen">
+            <div class="status" id="status">Ready for demo round</div>
+            <div class="multiplier" id="multiplier">1.00x</div>
+            <div class="plane" id="plane">✈</div>
+        </div>
+
+        <div class="controls">
+
+            <div class="panel">
+                <label>Bet Amount (Virtual ₹)</label>
+                <input id="betAmount" type="number" value="100" min="1">
+
+                <button class="bet" id="betBtn" onclick="placeBet()">
+                    PLACE DEMO BET
+                </button>
+
+                <button class="cash" id="cashBtn" onclick="cashOut()" disabled>
+                    CASH OUT
+                </button>
+
+                <button class="reset" onclick="resetDemo()">
+                    RESET ₹10,000
+                </button>
+            </div>
+
+            <div class="panel">
+                <label>Current Round</label>
+
+                <div style="margin-top:15px;color:#9da8b8">
+                    Bet:
+                    <strong id="currentBet" style="color:white">₹0</strong>
+                </div>
+
+                <div style="margin-top:12px;color:#9da8b8">
+                    Multiplier:
+                    <strong id="currentMultiplier" style="color:white">1.00x</strong>
+                </div>
+
+                <div style="margin-top:12px;color:#9da8b8">
+                    Potential Return:
+                    <strong id="potential" style="color:#37e27d">₹0</strong>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- LOCAL DEMO CONTROLLER -->
+    <div class="controller">
+        <h3>⚙ Demo Controller</h3>
+
+        <label>Set Round Result Multiplier</label>
+
+        <input
+            id="resultMultiplier"
+            type="number"
+            min="1.01"
+            step="0.01"
+            value="2.00"
+        >
+
+        <button onclick="startControlledRound()">
+            START CONTROLLED DEMO ROUND
+        </button>
+
+        <div class="note">
+            यह controller केवल learning/testing के लिए है।
+            इसमें कोई real-money betting, payment या withdrawal system नहीं है।
+            Result इसी browser में locally calculate होता है।
+        </div>
+    </div>
+
+    <div class="history">
+
+        <h3>Round History</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Bet</th>
+                    <th>Result</th>
+                    <th>Multiplier</th>
+                    <th>P/L</th>
+                </tr>
+            </thead>
+
+            <tbody id="historyBody"></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+let balance = 10000;
+let bet = 0;
+let currentMultiplier = 1;
+let targetMultiplier = 2;
+let roundActive = false;
+let cashedOut = false;
+let interval = null;
+
+const balanceEl = document.getElementById("balance");
+const multiplierEl = document.getElementById("multiplier");
+const currentBetEl = document.getElementById("currentBet");
+const currentMultiplierEl = document.getElementById("currentMultiplier");
+const potentialEl = document.getElementById("potential");
+const statusEl = document.getElementById("status");
+const planeEl = document.getElementById("plane");
+const cashBtn = document.getElementById("cashBtn");
+
+function money(value){
+    return "₹" + Number(value).toLocaleString("en-IN",{
+        minimumFractionDigits:2,
+        maximumFractionDigits:2
+    });
+}
+
+function updateBalance(){
+    balanceEl.textContent = money(balance);
+}
+
+function placeBet(){
+
+    if(roundActive){
+        alert("Current round is already running.");
+        return;
+    }
+
+    let amount = Number(document.getElementById("betAmount").value);
+
+    if(!amount || amount <= 0){
+        alert("Enter a valid virtual bet amount.");
+        return;
+    }
+
+    if(amount > balance){
+        alert("Insufficient virtual balance.");
+        return;
+    }
+
+    bet = amount;
+    balance -= bet;
+
+    currentBetEl.textContent = money(bet);
+    currentMultiplierEl.textContent = "1.00x";
+    potentialEl.textContent = money(bet);
+
+    updateBalance();
+
+    statusEl.textContent = "Demo bet placed. Start a controlled round.";
+}
+
+function startControlledRound(){
+
+    if(roundActive){
+        alert("A round is already running.");
+        return;
+    }
+
+    if(bet <= 0){
+        alert("First place a demo bet.");
+        return;
+    }
+
+    targetMultiplier = Number(
+        document.getElementById("resultMultiplier").value
+    );
+
+    if(targetMultiplier < 1.01){
+        alert("Multiplier must be at least 1.01x.");
+        return;
+    }
+
+    roundActive = true;
+    cashedOut = false;
+    currentMultiplier = 1;
+
+    multiplierEl.classList.add("running");
+    planeEl.style.display = "block";
+
+    statusEl.textContent = "Round running...";
+    cashBtn.disabled = false;
+
+    clearInterval(interval);
+
+    interval = setInterval(function(){
+
+        currentMultiplier += 0.01;
+
+        multiplierEl.textContent =
+            currentMultiplier.toFixed(2) + "x";
+
+        currentMultiplierEl.textContent =
+            currentMultiplier.toFixed(2) + "x";
+
+        potentialEl.textContent =
+            money(bet * currentMultiplier);
+
+        planeEl.style.left =
+            Math.min(85,10 + currentMultiplier * 12) + "%";
+
+        if(currentMultiplier >= targetMultiplier){
+
+            clearInterval(interval);
+
+            roundActive = false;
+            cashBtn.disabled = true;
+
+            multiplierEl.textContent =
+                targetMultiplier.toFixed(2) + "x";
+
+            currentMultiplierEl.textContent =
+                targetMultiplier.toFixed(2) + "x";
+
+            if(!cashedOut){
+
+                statusEl.textContent =
+                    "Round ended — LOSS";
+
+                addHistory(
+                    bet,
+                    targetMultiplier,
+                    -bet,
+                    "LOSS"
+                );
+
+                bet = 0;
+                currentBetEl.textContent = money(0);
+                potentialEl.textContent = money(0);
+
+            }
+
+            planeEl.style.display = "none";
+        }
+
+    },30);
+}
+
+function cashOut(){
+
+    if(!roundActive || cashedOut){
+        return;
+    }
+
+    let payout = bet * currentMultiplier;
+    let profit = payout - bet;
+
+    balance += payout;
+
+    cashedOut = true;
+    roundActive = false;
+
+    clearInterval(interval);
+
+    cashBtn.disabled = true;
+
+    statusEl.textContent =
+        "Cashed out — WIN";
+
+    addHistory(
+        bet,
+        currentMultiplier,
+        profit,
+        "WIN"
+    );
+
+    bet = 0;
+
+    currentBetEl.textContent = money(0);
+    potentialEl.textContent = money(0);
+
+    updateBalance();
+
+    planeEl.style.display = "none";
+}
+
+function addHistory(
+    betAmount,
+    multiplier,
+    pnl,
+    result
+){
+
+    let row =
+        document.createElement("tr");
+
+    let time =
+        new Date().toLocaleTimeString();
+
+    row.innerHTML = `
+        <td>${time}</td>
+        <td>${money(betAmount)}</td>
+        <td class="${result === "WIN" ? "win":"loss"}">
+            ${result}
+        </td>
+        <td>${Number(multiplier).toFixed(2)}x</td>
+        <td class="${pnl >= 0 ? "win":"loss"}">
+            ${pnl >= 0 ? "+" : ""}${money(pnl)}
+        </td>
+    `;
+
+    document
+        .getElementById("historyBody")
+        .prepend(row);
+}
+
+function resetDemo(){
+
+    clearInterval(interval);
+
+    balance = 10000;
+    bet = 0;
+    currentMultiplier = 1;
+    roundActive = false;
+    cashedOut = false;
+
+    multiplierEl.textContent = "1.00x";
+    multiplierEl.classList.remove("running");
+
+    currentBetEl.textContent = money(0);
+    currentMultiplierEl.textContent = "1.00x";
+    potentialEl.textContent = money(0);
+
+    statusEl.textContent =
+        "Demo balance reset to ₹10,000";
+
+    cashBtn.disabled = true;
+
+    planeEl.style.display = "none";
+
+    document.getElementById("historyBody").innerHTML = "";
+
+    updateBalance();
+}
+
+updateBalance();
+
+</script>
+
+</body>
+</html>
+```
